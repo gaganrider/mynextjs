@@ -37,6 +37,7 @@ jobs:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
             docker stop my-nextjs-app || true
             docker rm my-nextjs-app || true
