@@ -8,6 +8,7 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,7 +22,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        
+
       - name: Build and push Docker image
         id: docker_build
         uses: docker/build-push-action@v5
@@ -29,9 +30,9 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ github.repository }}/my-nextjs-app:${{ github.sha }}
-      
+
       - name: Log in to EC2 and deploy Docker container
-        uses: appleboy/ssh-action@v0.1.10 # Using a specific tag, not master
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.EC2_IP }}
           username: ${{ secrets.EC2_USER }}
