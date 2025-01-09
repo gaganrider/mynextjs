@@ -8,29 +8,35 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4    # Updated to v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3    # Updated to v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
-      run: |
-        docker build -t my-nextjs-app .
-
-    - name: Log in to EC2 and deploy Docker container
-      uses: appleboy/ssh-action@master    # Updated to master instead of version tag
-      with:
-        host: ${{ secrets.EC2_IP }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          # Pull the Docker image from the GitHub Actions runner (if desired)
-          docker build -t my-nextjs-app .
-
-          # Run the Docker container on EC2
-          docker stop my-nextjs-app || true
-          docker rm my-nextjs-app || true
-          docker run -d -p 3000:3000 --name my-nextjs-app my-nextjs-app:latest
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Build and push Docker image
+        id: docker_build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}/my-nextjs-app:${{ github.sha }}
+      
+      - name: Log in to EC2 and deploy Docker container
+        uses: appleboy/ssh-action@v0.1.10 # Using a specific tag, not master
+        with:
+          host: ${{ secrets.EC2_IP }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker stop my-nextjs-app || true
+            docker rm my-nextjs-app || true
+            docker run -d -p 3000:3000 --name my-nextjs-app ghcr.io/${{ github.repository }}/my-nextjs-app:${{ github.sha }}
