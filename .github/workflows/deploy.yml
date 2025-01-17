@@ -20,7 +20,7 @@ jobs:
       - name: Deploy to EC2 via AWS SSM
         run: |
           aws ssm send-command \
-            --instance-ids "i-YOUR_INSTANCE_ID" \
+            --instance-ids "3.110.165.155" \
             --document-name "AWS-RunShellScript" \
             --parameters "commands=[
               'cd ~/nextjs-app',
