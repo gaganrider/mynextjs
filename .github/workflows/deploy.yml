@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ main ]  # or your default branch
+    branches: [ main ]  # or your default branch name
 
 jobs:
   deploy:
@@ -10,16 +10,25 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
+      - name: Debug SSH Key
+        run: |
+          echo "Key length: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | wc -c)"
+          echo "First line: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | head -n 1)"
+          echo "Last line: $(echo '${{ secrets.SSH_PRIVATE_KEY }}' | tail -n 1)"
+      
       - name: Deploy to EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          debug: true
           script: |
-            cd ~/nextjs-app
-            git pull
+            whoami
+            pwd
+            cd ~/nextjs-app || exit 1
+            git pull || exit 1
             sudo docker stop nextjs-container || true
             sudo docker rm nextjs-container || true
-            sudo docker build -t nextjs-app .
-            sudo docker run -d -p 4000:4000 --name nextjs-container nextjs-app
+            sudo docker build -t nextjs-app . || exit 1
+            sudo docker run -d -p 4000:4000 --name nextjs-container nextjs-app || exit 1
