@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: [ main ]  # or your default branch name
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -10,16 +10,23 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd ~/nextjs-app
-            git pull
-            sudo docker stop nextjs-container || true
-            sudo docker rm nextjs-container || true
-            sudo docker build -t nextjs-app .
-            sudo docker run -d -p 4000:4000 --name nextjs-container nextjs-app
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+          
+      - name: Deploy to EC2 via AWS SSM
+        run: |
+          aws ssm send-command \
+            --instance-ids "i-YOUR_INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --parameters "commands=[
+              'cd ~/nextjs-app',
+              'git pull',
+              'sudo docker stop nextjs-container || true',
+              'sudo docker rm nextjs-container || true',
+              'sudo docker build -t nextjs-app .',
+              'sudo docker run -d -p 4000:4000 --name nextjs-container nextjs-app'
+            ]"
