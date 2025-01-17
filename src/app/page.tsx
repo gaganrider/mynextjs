@@ -9,7 +9,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center">
             <div className="md:w-1/2 mb-10 md:mb-0">
               <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                Transform Your Business Digital Presenceeeeeee
+                Transform Your Business Digital Presenceeeeeeee
               </h1>
               <p className="text-xl mb-8">
                 We help businesses grow through innovative digital solutions and strategic planning.
